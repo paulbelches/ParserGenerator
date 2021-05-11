@@ -839,6 +839,7 @@ class Scanner {
     }
 };
 
+/*
 int main(int argc, char **argv) {     
     if (argc < 2){
         cout << "An error ocurred\n";
@@ -860,4 +861,4 @@ int main(int argc, char **argv) {
         cout << "Check your expression and try again\n";
     }
     return 0;
-}
+}*/

@@ -654,7 +654,7 @@ int main (int argc, char* argv[]) {
   string line;
   ifstream basefile;
   basefile.open("scanner.cpp");
-  ofstream newfile("main.cpp");
+  ofstream newfile("scanner.h");
   if (basefile.is_open())
   {
     while ( getline (basefile,line) )
@@ -690,9 +690,9 @@ int main (int argc, char* argv[]) {
    basefile.close();
    newfile.close();
    cout << "Compiling file" << endl;
-   string command = "c++ main.cpp -o scanner.run";
+   string command = "c++ parser.cpp -o parser.run";
    system(command.c_str());
-   cout << "To run the scanner use ./scanner.run <filepath> " << endl;
+   cout << "To run the parser use ./parser.run <filepath> " << endl;
   } else {
     cout << "Unable to open file";
   }

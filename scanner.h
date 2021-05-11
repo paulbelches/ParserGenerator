@@ -436,6 +436,12 @@ set<int> setNodeToSetInt(set<Node*> nodes){
  *         transitions The transitions of each of the the automata nodes
  *         alphabet    The alphabet of the automata
  */ 
+
+struct token {
+  string type;
+  string value;
+} ;
+
 class AFDirect{
     public:
     //followpos table
@@ -460,7 +466,7 @@ class AFDirect{
     set<int> getFollowpos(int id);
     string getLetter(int id);
     int getNumber(string letter);
-    void simulate(string chain);
+    void simulate(string chain, queue<token>& readTokens);
     int getTransition(string charcterNumber);
     /*---------------------------------------------------------------------
     * Contructor
@@ -679,7 +685,7 @@ int AFDirect:: getTransition(string charcterNumber){
  * In arg:        afd, the direct deterministic finite automata     chain, the input chain
  * Return val:    -------
  */
-void AFDirect::simulate(string chain){
+void AFDirect::simulate(string chain, queue<token>& readTokens){
     //check alphabet
     stack<int> chequedStates;
     int i = 0;
@@ -697,14 +703,22 @@ void AFDirect::simulate(string chain){
                 if (chequedStates.size() == 1){
                     readCharacters = readCharacters + chain[i];
                     i++;
-                    cout << "<" << readCharacters << ", error>\n";
+                    token tempToken;
+                    tempToken.type = "error";
+                    tempToken.value = readCharacters;
+                    readTokens.push(tempToken);
+                    //cout << "<" << readCharacters << ", error>\n";
                     readCharacters = "";
                 } else {
                     int goback = 0;
                     int terminalId = isTerminal(currentState);
                     while(terminalId == -1){
                         if (chequedStates.size() == 1){
-                            cout << "<" << readCharacters << ", error>\n";
+                            token tempToken;
+                            tempToken.type = "error";
+                            tempToken.value = readCharacters;
+                            readTokens.push(tempToken);
+                            //cout << "<" << readCharacters << ", error>\n";
                             readCharacters = "";
                             currentState = 0;
                             chequedStates.top() = 0;
@@ -721,9 +735,17 @@ void AFDirect::simulate(string chain){
                         terminalId = isTerminal(currentState);
                         readCharacters = readCharacters.substr(0, readCharacters.size()-goback);
                         if (exceptTokens[expressionsId[terminalId]] && keywords[readCharacters].size() > 0){
-                            cout << "<" << readCharacters << ", " << keywords[readCharacters] << ">" << endl;
+                            token tempToken;
+                            tempToken.type = keywords[readCharacters];
+                            tempToken.value = readCharacters;
+                            readTokens.push(tempToken);
+                            //cout << "<" << readCharacters << ", " << keywords[readCharacters] << ">" << endl;
                         } else {
-                            cout << "<" << readCharacters << "," << expressionsId[terminalId] << ">" << endl;
+                            token tempToken;
+                            tempToken.type = expressionsId[terminalId];
+                            tempToken.value = readCharacters;
+                            readTokens.push(tempToken);
+                            //cout << "<" << readCharacters << "," << expressionsId[terminalId] << ">" << endl;
                         }
                         readCharacters = "";
                         while (chequedStates.size() > 1){
@@ -752,33 +774,6 @@ void AFDirect::simulate(string chain){
 
 }
 
-/*---------------------------------------------------------------------
- * Function:      generateStream
- * Purpose:       Read input file
- * In arg:        file the pointer where the file is going to be saved      filepath the file path
- * Return val:    Resulting state
- */
-int generateStream(string& file, string filePath){
-    string filename(filePath);
-    vector<char> bytes;
-    char byte = 0;
-
-    ifstream input_file(filename);
-    if (!input_file.is_open()) {
-        throw std::invalid_argument( "Could not open input file");
-    }
-    while (input_file.get(byte)) {
-        bytes.push_back(byte);
-    }
-    for (const auto &i : bytes) {
-        file = file + i;
-        //cout << i << " " << (int)i << " " << isspace(i) << endl;
-    }
-    input_file.close();
-
-    return 1;
-}
-
 class Scanner {
     public:
     vector<string> expressions;
@@ -789,12 +784,14 @@ class Scanner {
     set<int> whitespaces;
     set<int> registerIds;
     map<string,string> keywords;
+    queue<token> readTokens;
     SyntaxTree* syntaxtree;
     AFDirect* afdirect;
     Scanner(string input){
         whitespaces.insert(13);
         whitespaces.insert(10);
         whitespaces.insert(9);
+        whitespaces.insert(32);
         exceptTokens["startcode"] = 0;
         expressions.push_back("(40)(46)");
         expressionsId.push_back("startcode");
@@ -835,29 +832,6 @@ class Scanner {
         }
         fillFunctions(syntaxtree->root);   
         AFDirect* afdirect = new AFDirect(syntaxtree->root, alphabet, finalids, expressions, expressionsId, whitespaces, exceptTokens, keywords);
-        afdirect->simulate(input);
+        afdirect->simulate(input, readTokens);
     }
 };
-
-int main(int argc, char **argv) {     
-    if (argc < 2){
-        cout << "An error ocurred\n";
-        cout << "Missing file path argument" << endl;
-        return 0;
-    }
-    try {
-        string filePath = argv[1];
-        string input;
-        generateStream(input, filePath);
-        if (input.size() <= 0){
-            cout << "Input file is empty\n";
-            return 0;
-        }
-        Scanner* s = new Scanner(input);
-        
-    } catch (std::exception& e) {
-        cout << "Error: An error ocurred\n";
-        cout << "Check your expression and try again\n";
-    }
-    return 0;
-}

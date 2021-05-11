@@ -68,28 +68,7 @@ int precedence(char v){
     }
     return -1;
 }
-/*---------------------------------------------------------------------
- * Function:      correctParentesis
- * Purpose:       Check if the amount of opening and closing parentesis is right 
- * In arg:        expr, the string to be checked
- * Return val:    Whether the amoun is right or not
- */
-bool correctParentesis(string expr){
-    int openParentesis = 0;
-    int closingParentesis = 0;
-    for (int i = 0; i < expr.size(); i = i + 1){
-        if (closingParentesis > openParentesis) {
-            return 0;
-        }
-        if (expr[i] == '('){
-            openParentesis = openParentesis + 1;
-        }
-        if (expr[i] == ')'){
-            closingParentesis = closingParentesis + 1;
-        }
-    }
-    return openParentesis == closingParentesis;
-}
+
 /*---------------------------------------------------------------------
  * Class:         Node
  * Purpose:       Represent nodes of a syntax tree
@@ -302,33 +281,6 @@ set<string> getAlphabet(string s){
     }
     return result;
 }
-/*---------------------------------------------------------------------
- * Function:      setToString
- * Purpose:       Generate a string from a set of strings 
- * In arg:        s, Set of strings
- * Return val:    Resulting string
- */
-string setToString(set<string> s){
-    string result = "";
-    for (auto const &e: s) {
-        result = result + e + " ";
-    }
-    return result;
-}
-
-/*---------------------------------------------------------------------
- * Function:      setToStringVector
- * Purpose:       Generate a string vector from a set of strings 
- * In arg:        s, Set of strings
- * Return val:    Resulting string vecotr
- */
-vector<string> setToStringVector(set<string> s){
-    vector<string> result;
-    for (auto const &e: s) {
-        result.push_back(e);
-    }
-    return result;
-}
 
 /*---------------------------------------------------------------------
  * Class:           SyntaxTree
@@ -459,64 +411,6 @@ void SyntaxTree::join(Node* tree, set<int>& registerIds){
 }
 
 /*---------------------------------------------------------------------
- * Function:      printNode
- * Purpose:       Generate a string from a set of nodes
- * In arg:        nodes, set of nodes
- * Return val:    Resulting string
- */
-string printNode(set<Node*> nodes){
-    string result = "";
-    for (auto const &e: nodes) {
-        result = result + " " + to_string(e->id);
-    }
-    return "{" + result + " }";
-}
-
-/*---------------------------------------------------------------------
- * Function:      printTree
- * Purpose:       Print the syntax tree
- * In arg:        root, a node from the tree, counter, the depth in the tree
- * Return val:    -------
- */
-
-
-
-void printSyntaxTree(Node* root, int counter, fstream& file){
-    string left = "";
-    string right = "";
-    if (root->left != NULL){
-        Node* leftNode = root->left;
-        left = leftNode->data;
-        file << (to_string(root->id) + " " + to_string(leftNode->id)) << endl; 
-    } 
-    if (root->right != NULL){
-        Node* rightNode = root->right;
-        right = rightNode->data;
-        file << (to_string(root->id) + " " + to_string(rightNode->id)) << endl;
-    } 
-    cout << "(" << counter << ", value: " << root->data << ", id: " << root->id << ", left: " << left << ", right: " << right << ") firstpos: " << printNode(root->firstpos) << " lastpos: " << printNode(root->lastpos) << "\n";
-    if (root->left != NULL){
-        printSyntaxTree(root->left, counter + 1, file);
-    }
-    if (root->right != NULL){
-        printSyntaxTree(root->right, counter + 1, file);
-    }
-}
-
-/*---------------------------------------------------------------------
- * Function:      printIntSet
- * Purpose:       Generate a string from a set of ints
- * In arg:        nodes, set of ints 
- * Return val:    Resulting string
- */
-string printIntSet(set<int> set){
-    string result ;
-    for (auto const &e: set) {
-        result = result + to_string(e) + " ";
-    }   
-    return "{ " + result + "}";
-}
-/*---------------------------------------------------------------------
  * Function:      setNodeToSetInt
  * Purpose:       Generate a set of ints from a set of nodes
  * In arg:        nodes, set of nodes
@@ -542,6 +436,12 @@ set<int> setNodeToSetInt(set<Node*> nodes){
  *         transitions The transitions of each of the the automata nodes
  *         alphabet    The alphabet of the automata
  */ 
+
+struct token {
+  string type;
+  string value;
+} ;
+
 class AFDirect{
     public:
     //followpos table
@@ -566,7 +466,7 @@ class AFDirect{
     set<int> getFollowpos(int id);
     string getLetter(int id);
     int getNumber(string letter);
-    void simulate(string chain);
+    void simulate(string chain, queue<token>& readTokens);
     int getTransition(string charcterNumber);
     /*---------------------------------------------------------------------
     * Contructor
@@ -622,19 +522,6 @@ class AFDirect{
             transitions.push_back(temporalTransitions);
             pendingStates.pop();
         }
-    }
-/*---------------------------------------------------------------------
- * Contructor
- * In arg:        states, the states of the automata, transitions, the transitions of the automata
- *                alphabet, the automata alphabet   ids, the ids of the nodes    leafs, the char value of the nodes
- */
-AFDirect( vector <set<int>> states, vector <vector <int>> transitions, 
-    set<string> alphabet, vector<int> ids, vector<string> leafs){
-        this->alphabet = alphabet;
-        this->states = states;
-        this->transitions = transitions;
-        this->leafs = leafs;
-        this->ids = ids;
     }
 };
 /*---------------------------------------------------------------------
@@ -798,7 +685,7 @@ int AFDirect:: getTransition(string charcterNumber){
  * In arg:        afd, the direct deterministic finite automata     chain, the input chain
  * Return val:    -------
  */
-void AFDirect::simulate(string chain){
+void AFDirect::simulate(string chain, queue<token>& readTokens){
     //check alphabet
     stack<int> chequedStates;
     int i = 0;
@@ -816,14 +703,22 @@ void AFDirect::simulate(string chain){
                 if (chequedStates.size() == 1){
                     readCharacters = readCharacters + chain[i];
                     i++;
-                    cout << "<" << readCharacters << ", error>\n";
+                    token tempToken;
+                    tempToken.type = "error";
+                    tempToken.value = readCharacters;
+                    readTokens.push(tempToken);
+                    //cout << "<" << readCharacters << ", error>\n";
                     readCharacters = "";
                 } else {
                     int goback = 0;
                     int terminalId = isTerminal(currentState);
                     while(terminalId == -1){
                         if (chequedStates.size() == 1){
-                            cout << "<" << readCharacters << ", error>\n";
+                            token tempToken;
+                            tempToken.type = "error";
+                            tempToken.value = readCharacters;
+                            readTokens.push(tempToken);
+                            //cout << "<" << readCharacters << ", error>\n";
                             readCharacters = "";
                             currentState = 0;
                             chequedStates.top() = 0;
@@ -840,9 +735,17 @@ void AFDirect::simulate(string chain){
                         terminalId = isTerminal(currentState);
                         readCharacters = readCharacters.substr(0, readCharacters.size()-goback);
                         if (exceptTokens[expressionsId[terminalId]] && keywords[readCharacters].size() > 0){
-                            cout << "<" << readCharacters << ", " << keywords[readCharacters] << ">" << endl;
+                            token tempToken;
+                            tempToken.type = keywords[readCharacters];
+                            tempToken.value = readCharacters;
+                            readTokens.push(tempToken);
+                            //cout << "<" << readCharacters << ", " << keywords[readCharacters] << ">" << endl;
                         } else {
-                            cout << "<" << readCharacters << "," << expressionsId[terminalId] << ">" << endl;
+                            token tempToken;
+                            tempToken.type = expressionsId[terminalId];
+                            tempToken.value = readCharacters;
+                            readTokens.push(tempToken);
+                            //cout << "<" << readCharacters << "," << expressionsId[terminalId] << ">" << endl;
                         }
                         readCharacters = "";
                         while (chequedStates.size() > 1){
@@ -870,303 +773,38 @@ void AFDirect::simulate(string chain){
     }
 
 }
-/*---------------------------------------------------------------------
- * Function:      writeAFDirect
- * Purpose:       Write the direct deterministic finite automata
- * In arg:        afdirect, the direct deterministic finite automata       name, the name of the file
- * Return val:    -------
- */
-void writeAFDirect(AFDirect* afdirect, string name){ 
-    fstream my_file;
-	my_file.open(name, ios::out);
-    //cout << nodes.size() << "\n";
-	if (!my_file) {
-		cout << "File not created!";
-	}
-	else {
-		cout << "File created successfully!" << "\n";
-        for (int j = 0; j < afdirect->finalids.size(); j = j + 1){
-            int finalNum = afdirect->finalids[j];
-            for (int i = 0; i < afdirect->states.size(); i = i + 1){
-                if (afdirect->states[i].find(finalNum) != afdirect->states[i].end()){
-                    my_file << i << "\n";
-                }
-            }
-        }
-        vector<string> s = setToStringVector(afdirect->alphabet);
-        for (int i = 0; i < afdirect->transitions.size(); i = i + 1){
-            for (int j = 0; j < afdirect->transitions[i].size(); j = j + 1){
-                if (afdirect->transitions[i][j] != -1){
-                    my_file << i << " "<< afdirect->transitions[i][j] << " " << s[j] << "\n";
-                }
-            }
-        }
-		my_file.close();
-	}
-}
-/*---------------------------------------------------------------------
- * Function:      printAFDirect
- * Purpose:       Print in console the direct deterministic finite automata
- * In arg:        afd, the direct deterministic finite automata 
- * Return val:    -------
- */
-void printAFDirect(AFDirect* afd){
-    cout << "///////////////////////deterministic finite direct automata/////////////////////// \n";
-    cout << "=========== Reference table =========== \n";
-    for (int i = 0; i <  afd->ids.size(); i = i + 1){
-        cout << afd->ids[i] << " " << afd->leafs[i] << "\n";
-    }
-    cout << "=============================== \n";
-        cout << "=========== Follow pos =========== \n";
-    for (int i = 0; i <  afd->nodes.size(); i = i + 1){
-        cout << afd->nodes[i] << " " << printIntSet(afd->followposV[i]) << "\n";
-    }
-    cout << "=============================== \n";
-    cout << "=========== States =========== \n";
-    for (int i = 0; i <  afd->states.size(); i = i + 1){
-        cout << i << " " << printIntSet(afd->states[i]) << "\n";
-    }
-    cout << "=============================== \n";
-    cout << "=========== Transitions =========== \n";
-    string trans = "    ";
-    for (auto const &e: afd->alphabet) {
-        trans = trans + e + "   ";
-    }
-    cout << trans << "\n";
-    for (int i = 0; i <  afd->states.size(); i = i + 1){\
-        trans = to_string(i) + "   ";
-        for (int j = 0; j <  afd->alphabet.size(); j = j + 1){
-            if (afd->transitions[i][j] == -1){
-                trans = trans + "-" + "   ";
-            } else {
-                trans = trans + to_string(afd->transitions[i][j]) + "   ";
-            }
-        }
-        cout << trans << "\n";
-    }
-    cout << "=============================== \n";
-    cout << "//////////////////////////////////////////////////////// \n";
-}
 
-/*---------------------------------------------------------------------
- * Function:      setIntToVectorInt
- * Purpose:       Generate a vector of ints from a set of ints
- * In arg:        set, set of ints
- * Return val:    Resulting vector
- */
-vector<int> setIntToVectorInt(set<int> set){
-    vector<int> result;
-    for (auto const &e: set) {
-        result.push_back(e);
-    }
-    return result;
-}
-
-/*---------------------------------------------------------------------
- * Function:      getPositionInSet
- * Purpose:       Get the set number, of the set that contains a number in a set of sets of ints
- * In arg:        partition, set of sets of ints   num, the number that is going to be search
- * Return val:    the set position
- */
-int getPositionInSet(set<set<int>> partition, int num) {
-    int cont = 0;
-    for (auto const &e: partition) {
-        if (e.find(num) != e.end() ){
-            return cont;
-        }
-        cont ++;
-    }
-    return -1;
-}
-
-/*---------------------------------------------------------------------
- * Function:      separateSets
- * Purpose:       Separate Sets of states that go to diferent sets in a automata
- * In arg:        partition,set that contains the initial partition of final and non final states alphabet,alphabet of the automata  transitions, transitions of the automata
- * Return val:    Resulting partitions
- */
-set<set<int>> separateSets(set<set<int>> partition, set<string> alphabet, vector <vector <int>> transitions){
-    bool changed = true;
-    while (changed){
-        changed = false;
-        set<set<int>> resul;
-        set<int> newSet;
-        for (auto const &e: partition) {
-            set<int> tempSet = e;
-            vector<int> comparisonVector (alphabet.size(),-1);  
-            if (tempSet.size() > 1){
-                for (auto const &f: e) {
-                    for(int i = 0; i < alphabet.size(); i = i + 1){
-                        int result = transitions[f][i];
-                        if (result != -1) {
-                            // add -1 condition
-                            if (comparisonVector[i] == -1){
-                                comparisonVector[i] = getPositionInSet(partition, result);
-                            } else if (comparisonVector[i] != getPositionInSet(partition, result) ){
-                                newSet.insert(f);
-                                tempSet.erase(f);
-                            }
-                        }
-                    }
-                }
-                resul.insert(tempSet); 
-            } else {
-                resul.insert(tempSet);
-            }
-        }
-        if (newSet.size() > 0){
-            resul.insert(newSet);
-            partition = resul;
-            changed = true;
-        }
-    }
-    return partition;
-}
-
-/*---------------------------------------------------------------------
- * Function:      minimization
- * Purpose:       Minimization of finite direct automatas
- * In arg:        states,states of the automata  alphabet,alphabet of the automata  transitions, transitions of the automata finalId, the id of the final states in the automata
- * Return val:    Resulting partitions
- */
-AFDirect* minimization(vector <set<int>> states, set<string> alphabet,vector <vector <int>> transitions, int finalId){
-    set<int> temp1;
-    set<int> temp2;
-    //Separate sets
-    set<int> terminals;
-    for (int i = 0; i < states.size(); i = i + 1){
-        if (states[i].find(finalId) == states[i].end() ){
-            temp1.insert(i);
-        } else {
-            temp2.insert(i);
-            terminals.insert(i);
-        }
-    }
-    set<set<int>> partition;
-    if (temp1.size() > 0){
-        partition.insert(temp1);
-    }
-    if (temp2.size() > 0){
-        partition.insert(temp2);
-    }
-    partition = separateSets(partition, alphabet, transitions);
-
-    vector <set<int>> finalStates;
-    vector <vector <int>> finalTransitions;
-    for (auto const &e: partition) {
-        bool terminalFlag = false;
-        set<int> tempSet = e;
-        vector<int> tempTransition (alphabet.size(),-1);
-        for (auto const &f: e) {
-            if (terminals.find(f) != terminals.end()){
-                terminalFlag = true;
-            }
-            for(int i = 0; i < alphabet.size(); i = i + 1){
-                int result = transitions[f][i];
-                if (result != -1) {
-                    tempTransition[i] = getPositionInSet(partition, result);
-                }
-            }
-        }
-        if (terminalFlag){
-            tempSet.insert(9999);
-        }
-        finalStates.push_back(tempSet);
-        finalTransitions.push_back(tempTransition);
-    }
-
-    vector<int> ids;
-    ids.push_back(9999);
-    vector<string> leafs;
-    leafs.push_back("#");
-    return new AFDirect(finalStates, finalTransitions, alphabet, ids, leafs);
-    //return NULL;
-}
-
-/*---------------------------------------------------------------------
- * Function:      generateStream
- * Purpose:       Read input file
- * In arg:        file the pointer where the file is going to be saved      filepath the file path
- * Return val:    Resulting state
- */
-int generateStream(string& file, string filePath){
-    string filename(filePath);
-    vector<char> bytes;
-    char byte = 0;
-
-    ifstream input_file(filename);
-    if (!input_file.is_open()) {
-        throw std::invalid_argument( "Could not open input file");
-    }
-    while (input_file.get(byte)) {
-        bytes.push_back(byte);
-    }
-    for (const auto &i : bytes) {
-        file = file + i;
-        //cout << i << " " << (int)i << " " << isspace(i) << endl;
-    }
-    input_file.close();
-
-    return 1;
-}
-
-int main(int argc, char **argv) {     
-    if (argc < 2){
-        cout << "An error ocurred\n";
-        cout << "Missing file path argument" << endl;
-        return 0;
-    }
-    try {
-        string filePath = argv[1];
-        string input;
-        generateStream(input, filePath);
-        if (input.size() <= 0){
-            cout << "Input file is empty\n";
-            return 0;
-        }
-        vector<string> expressions;
-        vector<string> expressionsId;
-        map<string,bool> exceptTokens;
-        vector<int> finalids;
-        map<string,string> savedCharacters;
-        set<int> whitespaces;
-        set<int> registerIds;
-        map<string,string> keywords;
+class Scanner {
+    public:
+    vector<string> expressions;
+    vector<string> expressionsId;
+    map<string,bool> exceptTokens;
+    vector<int> finalids;
+    map<string,string> savedCharacters;
+    set<int> whitespaces;
+    set<int> registerIds;
+    map<string,string> keywords;
+    queue<token> readTokens;
+    SyntaxTree* syntaxtree;
+    AFDirect* afdirect;
+    Scanner(string input){
         //INSERT EXPRESSIONS
         string expr = expand(expressions[0]);
         set<string> alphabet = getAlphabet(expr);
         expr = '(' + expr + ").#";
         SyntaxTree* syntaxtree = new SyntaxTree(expr,registerIds);
         finalids.push_back(syntaxtree->root->right->id);
-        fstream my_file;
-	    my_file.open("tree0.txt", ios::out);
-        printSyntaxTree(syntaxtree->root, 0, my_file);
-        my_file.close();
         for (int i = 1; i < expressions.size(); i = i + 1){
             string expr = expand(expressions[i]);
             set<string> tempAlphabet = getAlphabet(expr);
             alphabet.insert(tempAlphabet.begin(), tempAlphabet.end());
             expr = '(' + expr + ").#";
-            SyntaxTree* tempsyntaxtree = new SyntaxTree(expr,registerIds);
-	        my_file.open("tree"+to_string(i)+".txt", ios::out);
-            printSyntaxTree(tempsyntaxtree->root, 0, my_file);
-            my_file.close();
+            SyntaxTree* tempsyntaxtree = new SyntaxTree(expr,registerIds);;
             finalids.push_back(tempsyntaxtree->root->right->id);
             syntaxtree->join(tempsyntaxtree->root,registerIds);
         }
-	    my_file.open("tree.txt", ios::out);
-        printSyntaxTree(syntaxtree->root, 0, my_file);
-        my_file.close();
-        fillFunctions(syntaxtree->root);
-        
+        fillFunctions(syntaxtree->root);   
         AFDirect* afdirect = new AFDirect(syntaxtree->root, alphabet, finalids, expressions, expressionsId, whitespaces, exceptTokens, keywords);
-        writeAFDirect(afdirect, "afdirect.txt");
-        printAFDirect(afdirect);
-        afdirect->simulate(input);
-
-    } catch (std::exception& e) {
-        cout << "Error: An error ocurred\n";
-        cout << "Check your expression and try again\n";
+        afdirect->simulate(input, readTokens);
     }
-    return 0;
-}
+};
