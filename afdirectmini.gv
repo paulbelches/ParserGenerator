@@ -1,0 +1,133 @@
+digraph finite_state_machine {
+	rankdir=LR size="8,5"
+	node [shape=doublecircle]
+	node [shape=circle]
+	0 -> 1 [label="\"(H)\"
+"]
+	0 -> 0 [label="\"0\"
+"]
+	0 -> 0 [label="\"1\"
+"]
+	0 -> 0 [label="\"2\"
+"]
+	0 -> 0 [label="\"3\"
+"]
+	0 -> 0 [label="\"4\"
+"]
+	0 -> 0 [label="\"5\"
+"]
+	0 -> 0 [label="\"6\"
+"]
+	0 -> 0 [label="\"7\"
+"]
+	0 -> 0 [label="\"8\"
+"]
+	0 -> 0 [label="\"9\"
+"]
+	0 -> 0 [label="\"A\"
+"]
+	0 -> 0 [label="\"B\"
+"]
+	0 -> 0 [label="\"C\"
+"]
+	0 -> 0 [label="\"D\"
+"]
+	0 -> 0 [label="\"E\"
+"]
+	0 -> 0 [label="\"F\"
+"]
+	0 -> 0 [label="\"G\"
+"]
+	0 -> 0 [label="\"H\"
+"]
+	0 -> 0 [label="\"I\"
+"]
+	0 -> 0 [label="\"J\"
+"]
+	0 -> 0 [label="\"K\"
+"]
+	0 -> 0 [label="\"L\"
+"]
+	0 -> 0 [label="\"M\"
+"]
+	0 -> 0 [label="\"N\"
+"]
+	0 -> 0 [label="\"O\"
+"]
+	0 -> 0 [label="\"P\"
+"]
+	0 -> 0 [label="\"Q\"
+"]
+	0 -> 0 [label="\"R\"
+"]
+	0 -> 0 [label="\"S\"
+"]
+	0 -> 0 [label="\"T\"
+"]
+	0 -> 0 [label="\"U\"
+"]
+	0 -> 0 [label="\"V\"
+"]
+	0 -> 0 [label="\"W\"
+"]
+	0 -> 0 [label="\"X\"
+"]
+	0 -> 0 [label="\"Y\"
+"]
+	0 -> 0 [label="\"Z\"
+"]
+	0 -> 0 [label="\"a\"
+"]
+	0 -> 0 [label="\"b\"
+"]
+	0 -> 0 [label="\"c\"
+"]
+	0 -> 0 [label="\"d\"
+"]
+	0 -> 0 [label="\"e\"
+"]
+	0 -> 0 [label="\"f\"
+"]
+	0 -> 0 [label="\"g\"
+"]
+	0 -> 0 [label="\"h\"
+"]
+	0 -> 0 [label="\"i\"
+"]
+	0 -> 0 [label="\"j\"
+"]
+	0 -> 0 [label="\"k\"
+"]
+	0 -> 0 [label="\"l\"
+"]
+	0 -> 0 [label="\"m\"
+"]
+	0 -> 0 [label="\"n\"
+"]
+	0 -> 0 [label="\"o\"
+"]
+	0 -> 0 [label="\"p\"
+"]
+	0 -> 0 [label="\"q\"
+"]
+	0 -> 0 [label="\"r\"
+"]
+	0 -> 0 [label="\"s\"
+"]
+	0 -> 0 [label="\"t\"
+"]
+	0 -> 0 [label="\"u\"
+"]
+	0 -> 0 [label="\"v\"
+"]
+	0 -> 0 [label="\"w\"
+"]
+	0 -> 0 [label="\"x\"
+"]
+	0 -> 0 [label="\"y\"
+"]
+	0 -> 0 [label="\"z\"
+"]
+	0 -> 0 [label="\"|\"
+"]
+}

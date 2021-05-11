@@ -1,0 +1,39 @@
+
+COMPILER Cocol
+
+CHARACTERS 
+
+letter = CHR(65)..CHR(122) - CHR(91)..CHR(96).
+digit= "0123456789".
+anyButQuote = CHR(32)..CHR(256) - CHR(34)  - CHR(127).
+anyButApostrophe = CHR(32)..CHR(256) - CHR(39) - CHR(127).
+
+TOKENS
+
+ident = letter {letter | digit}.
+number = digit {digit}.
+string = '"' {anyButQuote} '"'.
+char = "'" anyButApostrophe "'".
+
+Char= char | "CHR"'('number ')'.
+BasicSet= string | ident | Char [".."Char].
+Set = BasicSet{ ('+'|'-') BasicSet}.
+SetDecl = ident '=' Set.
+
+KeywordDecl = ident '='string '.'.
+
+Symbol = ident | string | char.
+Token = Symbol | '(' Symbol ')'| '[' Symbol ']'|'{' Symbol '}'.
+TokenTerm = Token {Token}.
+TokenExpr= TokenTerm {'|'TokenTerm }.
+TokenFactor = Symbol | '(' TokenExpr ')'| '['TokenExpr ']'| '{'TokenExpr '}'.
+TokenExprLong= TokenFactor {'|'TokenFactor }.
+TokenDecl= ident ['='TokenExprLong]["EXCEPT KEYWORDS"] '.'.
+WhiteSpaceDecl = "IGNORE"Set.
+
+ScannerSpecification= ["CHARACTERS"{SetDecl}]["KEYWORDS"{KeyworDecl}]["TOKENS"{TokenDecl}]{WhiteSpaceDecl}.
+Cocol = "COMPILER" ident ScannerSpecification "END" ident '.'.
+
+IGNORE CHR(0)..CHR(31).
+
+END Cocol
