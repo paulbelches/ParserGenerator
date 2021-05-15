@@ -51,7 +51,7 @@ for line in content:
         f.edge(edge[0], edge[1], label=edge[2])
 
 f.view()
-
+"""
 filename = "tree.txt"
 with open(filename) as f:
     content = f.readlines()
@@ -99,7 +99,7 @@ for line in content:
         f.edge(edge[0], edge[1])
 
 f.view()
-
+"""
 """
 filename = "afdirectmini.txt"
 with open(filename) as f:

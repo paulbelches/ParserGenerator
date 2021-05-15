@@ -1,32 +1,30 @@
 COMPILER MyCOCOR
-(.//Especificacion de Funciones.)
 
 CHARACTERS
 
-letter= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
-digit= "0123456789".
-
-cr = CHR(13).
-lf = CHR(10).
-tab = CHR(9).
-space = CHR(32).
-ignore = cr+lf+tab+space.
-comillas = CHR(34).
-stringletter = ANY-comillas.
-charnumber = "CHR("digit{digit}")".
-operadores ="+-=()[]{}|.<>".
-MyANY = ANY-operadores-ignore.
+letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+digit  = "0123456789".
+quote  = '\"'.
+anyButQuote = ANY - quote.
+white = CHR(9) + CHR(32).
+ignore = CHR(10) + CHR(13).
 
 TOKENS
 
-startcode ="(.".
-char = "'"["/"]letter"'".
-endcode=".)".
-charinterval = "CHR("digit{digit}")""..""CHR("digit{digit}")".
-charnumber = "CHR("digit{digit}")".
-string = comillas({stringletter})comillas.
-ident = letter{letter|digit} EXCEPT KEYWORDS.
-nontoken = MyANY.
+whiteToken  = white{white}.
+ident    = letter{letter|digit}.
+eq       = "=".
+p_end    = ".".
+br_open  = '{'.
+br_close = '}'.
+sq_open  = '['.
+sq_close = ']'.
+p_open   = '('.
+p_close  = ')'.
+union    = '|'.
+string   = quote {anyButQuote} quote.
+attr     = '<' {ANY} '>'.
+s_action = "(." {ANY} ".)".
 
 IGNORE ignore.
 

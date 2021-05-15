@@ -29,7 +29,9 @@ using namespace std;
 
 
 const string flag = "        //INSERT EXPRESSIONS";
-const string keywords[] = {"COMPILER", "CHARACTERS", "KEYWORDS", "TOKENS", "IGNORE", "PRODUCTIONS", "END"};
+const string nameFlag = "//INSERT NAME";
+const string constructorFlag = "    //INSERT CONSTRUCTOR";
+const string keywords[] = {"COMPILER", "CHARACTERS", "KEYWORDS", "TOKENS", "IGNORE", "PRODUCTIONS", "END "};
 const string keywordsFlag = {"EXCEPT KEYWORDS"} ;
 const string tokenOperator = "()|*+?";
 /*---------------------------------------------------------------------
@@ -39,8 +41,7 @@ const string tokenOperator = "()|*+?";
  * Return val:    if its is a keyword or not
  */
 int isKeyWord(string line, int cont, const string keywords[]){
-  //change the 6
-  for (int i = 0; i < 6; i++){
+  for (int i = 0; i < 7; i++){
     if (line.substr(cont,keywords[i].size()).compare(keywords[i]) == 0){
       return i;
     }
@@ -226,7 +227,6 @@ string checkIfItsAId(string line, map<string, string>& references){
   }
   return line;
 }
-
 
 /*---------------------------------------------------------------------
  * Function:      join
@@ -423,16 +423,30 @@ void fillmaps(string filePath, map<string,string>& savedKeywords, map<string,str
   line = replaceString(line, "..", "$", false);
   int cont = 0;
   string acum = "";
+  string tempFile = "";
   while (line.size() > cont){
   // check for key word
     int tempCurrentKeyword = isKeyWord(line, cont, keywords);
     if (tempCurrentKeyword > 0){
       //check if the temp is lower than the actual, if that is the case, return errror
       currentKeyword = tempCurrentKeyword;
+      //cout << currentKeyword << endl;
       cont = cont + keywords[currentKeyword].size() - 1;
       terms.clear();
       operands.clear();
       acum= "";
+    } else if (currentKeyword == 5){
+      //check if the temp is lower than the actual, if that is the case, return errror;
+      //cout <<line[cont]<< endl;
+      tempFile = tempFile + line[cont];
+    } else if (currentKeyword == 6){
+      //check if the temp is lower than the actual, if that is the case, return errror;
+      if (tempFile.size() > 0){
+        ofstream newfile("productions.txt");
+        newfile << tempFile << endl;
+        newfile.close();
+        tempFile = "";
+      }
     } else if (readingChar && line[cont] != '\''){
       acum = acum + line[cont];
     } else if (readingString && line[cont] != '"'){
@@ -605,9 +619,20 @@ string mergeWhiteSpaces(vector<string>& whiteSpaces){
   return result; 
 }
 
+string removeSpaces (string chain){
+  //cout << chain << endl;
+  string result = "";
+  for (int i = 0; i < chain.size(); i++){
+    if (!isspace(chain[i])){
+      result = result + chain[i];
+    }
+  }
+  return result;
+}
+
 int main (int argc, char* argv[]) {
 
-  if (argc < 2){
+  if (argc < 4){
     cout << "An error ocurred\n";
     cout << "Missing file path argument" << endl;
     return 0;
@@ -621,7 +646,7 @@ int main (int argc, char* argv[]) {
   vector<string> tokenIds;
   vector<string> whiteSpaces;
   string resultWhiteSpaces;
-  savedCharacters["ANY"] = format("CHR(33)$CHR(126)");
+  savedCharacters["ANY"] = format("CHR(32)$CHR(126)");
   try {
     fillmaps(filePath, savedKeywords, savedCharacters, savedTokens, whiteSpaces, exceptTokens, tokenIds);
     passToOrs(savedCharacters);
@@ -634,6 +659,7 @@ int main (int argc, char* argv[]) {
     cout << "Check your expression and try again\n";
     return 0;
   }
+  /*
   //Prints
   for(auto it = savedCharacters.cbegin(); it != savedCharacters.cend(); ++it){
     if (it->second.size() > 0) {
@@ -648,18 +674,23 @@ int main (int argc, char* argv[]) {
   for(auto it = savedKeywords.cbegin(); it != savedKeywords.cend(); ++it){
     cout << it->first << " " << it->second << endl;
   }
-  cout << resultWhiteSpaces << endl;
+  cout << resultWhiteSpaces << endl;*/
   //write file
   
   string line;
   ifstream basefile;
   basefile.open("scanner.cpp");
-  ofstream newfile("scanner.h");
+  ofstream newfile(argv[2]);
+  string classId = argv[3];
   if (basefile.is_open())
   {
     while ( getline (basefile,line) )
     {
-      if (equal(line.begin(), line.end(), flag.begin(), flag.end())){
+      if (equal(line.begin(), line.end(), nameFlag.begin(), nameFlag.end())){
+        newfile <<  "class Scanner"+classId+" {" << endl;
+      } else if (equal(line.begin(), line.end(), constructorFlag.begin(), constructorFlag.end())){
+        newfile <<  "    Scanner"+classId+"(string input){" << endl;
+      } else if (equal(line.begin(), line.end(), flag.begin(), flag.end())){
         string acum = "";
         cout << "Writing whitespaces " << endl;
         if (resultWhiteSpaces.size() > 0){
@@ -676,23 +707,19 @@ int main (int argc, char* argv[]) {
         cout << "Writing tokens" << endl;
         for (int i = 0; i < tokenIds.size(); i++){
           newfile <<  "        exceptTokens[\"" << tokenIds[i] << "\"] = "<< exceptTokens[tokenIds[i]] <<";\n";
-          newfile <<  "        expressions.push_back(\"" << savedTokens[tokenIds[i]] <<"\");"<< endl;
+          newfile <<  "        expressions.push_back(\"" << removeSpaces(savedTokens[tokenIds[i]]) <<"\");"<< endl;
           newfile <<  "        expressionsId.push_back(\"" << tokenIds[i] <<"\");"<< endl;
         }
         cout << "Writing keywords" << endl;
         for(auto it = savedKeywords.cbegin(); it != savedKeywords.cend(); ++it){
-          newfile <<  "    keywords[\"" << it->first << "\"] = "<< it->second <<";\n";
+          newfile <<  "        keywords[\"" << it->first << "\"] = "<< it->second <<";\n";
         }
       } else {
         newfile << line << "\n";
       }
     }
-   basefile.close();
-   newfile.close();
-   cout << "Compiling file" << endl;
-   string command = "c++ parser.cpp -o parser.run";
-   system(command.c_str());
-   cout << "To run the parser use ./parser.run <filepath> " << endl;
+    basefile.close();
+    newfile.close();
   } else {
     cout << "Unable to open file";
   }
