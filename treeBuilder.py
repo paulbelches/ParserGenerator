@@ -28,7 +28,6 @@ from graphviz import Digraph
  *    graphviz, install using <pip3 install graphviz>
  *
  */
-"""
 
 filename = "afdirect.txt"
 with open(filename) as f:
@@ -52,54 +51,24 @@ for line in content:
 
 f.view()
 """
-filename = "tree.txt"
-with open(filename) as f:
-    content = f.readlines()
+for i in range(5):
+    filename = "tree" + str(i) + ".txt"
+    with open(filename) as f:
+        content = f.readlines()
 
-f = Digraph('finite_state_machine', filename='tree.gv')
-f.attr(rankdir='LR', size='8,5')
+    f = Digraph('finite_state_machine', filename="tree" + str(i) + ".gv")
+    f.attr(rankdir='LR', size='8,5')
 
-f.attr('node', shape='circle')
+    f.attr('node', shape='circle')
 
-for line in content:
-    edge = line.split(" ")
-    if (len(edge) == 2):
-        f.edge(edge[0], edge[1])
+    for line in content:
+        edge = line.split(" ")
+        if (len(edge) == 2):
+            f.edge(edge[0], edge[1])
 
-f.view()
+    f.view()
 
-filename = "tree0.txt"
-with open(filename) as f:
-    content = f.readlines()
 
-f = Digraph('finite_state_machine', filename='tree0.gv')
-f.attr(rankdir='LR', size='8,5')
-
-f.attr('node', shape='circle')
-
-for line in content:
-    edge = line.split(" ")
-    if (len(edge) == 2):
-        f.edge(edge[0], edge[1])
-
-f.view()
-
-filename = "tree1.txt"
-with open(filename) as f:
-    content = f.readlines()
-
-f = Digraph('finite_state_machine', filename='tree1.gv')
-f.attr(rankdir='LR', size='8,5')
-
-f.attr('node', shape='circle')
-
-for line in content:
-    edge = line.split(" ")
-    if (len(edge) == 2):
-        f.edge(edge[0], edge[1])
-
-f.view()
-"""
 """
 filename = "afdirectmini.txt"
 with open(filename) as f:

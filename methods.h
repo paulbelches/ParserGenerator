@@ -698,8 +698,8 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
         if (this->whitespaces.find((int)chain[i]) != whitespaces.end()){
             i = i + 1;
         } else {
-            //cout << chain[i];
-            cout << currentState << " " << chain[i]<< " " << i << endl;
+            //cout << chain[i] << endl;
+            //cout << currentState << " " << chain[i]<< " " << i << endl;
             int transition = getTransition(to_string((int)chain[i]));
             if (transitions[currentState][transition] == -1 || transition == -1){
             //cout << readCharacters << " " << chain[i] << " " << (int)chain[i] << " " << currentState << " " << transition << " " << transitions[currentState][transition] << endl;
@@ -710,7 +710,7 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
                     tempToken.type = "error";
                     tempToken.value = readCharacters;
                     readTokens.push(tempToken);
-                    cout << "ACA 1" << readCharacters <<  endl;
+                    //cout << "ACA 1" << readCharacters <<  endl;
                     //cout << "<" << readCharacters << ", error>\n";
                     readCharacters = "";
                 } else {
@@ -722,7 +722,7 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
                             tempToken.type = "error";
                             tempToken.value = readCharacters;
                             readTokens.push(tempToken);
-                            cout << "ACA 2" << readCharacters <<  endl;
+                            //cout << "ACA 2" << readCharacters <<  endl;
                             //cout << "<" << readCharacters << ", error>\n";
                             readCharacters = "";
                             currentState = 0;
@@ -736,7 +736,8 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
                         goback++;
                     }
                     if (goback > -1){
-                        cout << "go back: " << goback << endl;
+                        terminalId = isTerminal(currentState);
+                        readCharacters = readCharacters.substr(0, readCharacters.size()-goback);
                         //i = i - goback;//Goback indicates the amount of characters to go back, no necesarly the amount of positions
                         while (goback > 0){
                             if (this->whitespaces.find((int)chain[i]) == whitespaces.end()){
@@ -744,21 +745,20 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
                             }
                             i--;
                         }
-                        terminalId = isTerminal(currentState);
-                        readCharacters = readCharacters.substr(0, readCharacters.size()-goback);
+                        
                         if (exceptTokens[expressionsId[terminalId]] && keywords[readCharacters].size() > 0){
                             token tempToken;
                             tempToken.type = keywords[readCharacters];
                             tempToken.value = readCharacters;
                             readTokens.push(tempToken);
-                            cout << "ACA 3" << readCharacters <<  endl;
+                            //cout << "ACA 3" << readCharacters <<  endl;
                             //cout << "<" << readCharacters << ", " << keywords[readCharacters] << ">" << endl;
                         } else {
                             token tempToken;
                             tempToken.type = expressionsId[terminalId];
                             tempToken.value = readCharacters;
                             readTokens.push(tempToken);
-                            cout << "ACA 4" << readCharacters <<  endl;
+                            //cout << "ACA 4" << readCharacters <<  endl;
                             //cout << "<" << readCharacters << "," << expressionsId[terminalId] << ">" << endl;
                         }
                         readCharacters = "";
@@ -784,13 +784,13 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
             tempToken.type = keywords[readCharacters];
             tempToken.value = readCharacters;
             readTokens.push(tempToken);
-            //cout << "ACA 5" <<  endl;
+            ////cout << "ACA 5" <<  endl;
         } else {
             token tempToken;
             tempToken.type = keywords[readCharacters];
             tempToken.value = readCharacters;
             readTokens.push(tempToken);
-            //cout << "ACA 6" <<  endl;
+            ////cout << "ACA 6" <<  endl;
         }
     }
     cout << i << endl;
