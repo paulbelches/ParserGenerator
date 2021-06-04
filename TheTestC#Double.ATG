@@ -27,7 +27,7 @@ PRODUCTIONS
 Expr= {Stat ";"{white}}{white}".".
 
 Stat = 							(.double value=0;.)
-	Expression<value>		(.cout << "Resultado: "<< value;.)
+	Expression<value>		(.cout << "Resultado: "<< value << endl;.)
 	.
 
 Expression<double& result> =			(.double result1=0;double result2=0;.)

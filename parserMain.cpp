@@ -259,7 +259,7 @@ set<string> productionFirstpos( string ident  , vector<string> productionsIds, m
                     result.insert( 
                         equal(productionsMap[ident][cont].type.begin(), productionsMap[ident][cont].type.end(), "ident") ?
                         "\"" + productionsMap[ident][cont].value + "\"":
-                        "\"tonken" + productionsMap[ident][cont].value.substr(1, productionsMap[ident][cont].value.size())
+                        "\"token" + productionsMap[ident][cont].value.substr(1, productionsMap[ident][cont].value.size())
                     );
                 }
                 readIdent = false;
@@ -332,7 +332,7 @@ set<string> firstpos(ProductionNode* root, vector<string> productionsIds,map<str
         }
     } else if (equal(root->data.type.begin(), root->data.type.end(), "string")){
         //cout << "token " << root->data.value << endl; 
-        result.insert("\"tonken" + root->data.value.substr(1, root->data.value.size()));
+        result.insert("\"token" + root->data.value.substr(1, root->data.value.size()));
     } else {
         //cout << "aja...." << root->data.value << endl;
         result.insert(root->data.value);
@@ -558,7 +558,7 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
             first = false;
         }
         return "if ("+condition1 + "){ \n" + generateCode(root->left, root, productionsIds, productionsMap)
-            + "} \nif ("+condition2+ "){ \n" + generateCode(root->right, root, productionsIds, productionsMap) 
+            + "} \n else if ("+condition2+ "){ \n" + generateCode(root->right, root, productionsIds, productionsMap) 
             + "} else { error();\n}";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "lock")){
         if (root->firstpos.size() == 0){
@@ -587,7 +587,7 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
         return "if ("+condition+ "){ \n" + generateCode(root->left, root, productionsIds, productionsMap)+ "\n}";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "string")){
         //add to extra tokens list
-        return "verify(\"tonken" + root->data.value.substr(1, root->data.value.size()) + ");\n";
+        return "verify(\"token" + root->data.value.substr(1, root->data.value.size()) + ");\n";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "ident")){
         //Search if ident in term list
         bool isterm = false;

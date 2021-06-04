@@ -40,22 +40,24 @@ void error(string token){
 }
 
 void get() {
+    cout << "Entre al get" << endl;
     lastToken = nextToken;
-    nextToken = scanner->readTokens.front();
     scanner->readTokens.pop();
+    nextToken = scanner->readTokens.front();
+    //cout << "token " << nextToken.value << nextToken.type << endl;
 }
 
-void verify(string value){
+void verify(string type){
+    /*
+    cout << "Entre al verify" << endl;
+    cout << "Busco " << type << endl;
+    cout << "Recibi" <<nextToken.type << endl;*/
     bool doesPass = false; 
-    if (isString(value)) {
-        doesPass = nextToken.value == value;
-    } else {
-        doesPass = nextToken.value == value;
-    }
+    doesPass = equal(nextToken.type.begin(), nextToken.type.end(), type.begin(), type.end());
     if (doesPass){
         get();
     } else {
-        error();
+        error(type);
     }
 }
 
@@ -72,6 +74,13 @@ int main(int argc, char **argv)
     }
     cout << input << endl;
     scanner = new ScannerGrammar(input);
+    /*
+    while (!scanner->readTokens.empty()){
+        cout << scanner->readTokens.front().value << endl;
+        scanner->readTokens.pop();
+    }*/
+    nextToken = scanner->readTokens.front();
+    cout << "token " << nextToken.value << nextToken.type << endl;
     //INSERT FIRSTCALL
     return 0;
 }

@@ -40,22 +40,23 @@ void error(string token){
 }
 
 void get() {
+    cout << "Entre al get" << endl;
     lastToken = nextToken;
-    nextToken = scanner->readTokens.front();
     scanner->readTokens.pop();
+    nextToken = scanner->readTokens.front();
+    cout << "token " << nextToken.value << nextToken.type << endl;
 }
 
-void verify(string value){
+void verify(string type){
+    cout << "Entre al verify" << endl;
+    cout << "Busco " << type << endl;
+    cout << "Recibi" <<nextToken.type << endl;
     bool doesPass = false; 
-    if (isString(value)) {
-        doesPass = nextToken.value == value;
-    } else {
-        doesPass = nextToken.value == value;
-    }
+    doesPass = equal(nextToken.type.begin(), nextToken.type.end(), type.begin(), type.end());
     if (doesPass){
         get();
     } else {
-        error();
+        error(type);
     }
 }
 
@@ -70,7 +71,7 @@ void Number(double& result)
 {
 if ( equal(nextToken.type.begin(), nextToken.type.end(), "number") ){ 
 verify("number");} 
-if ( equal(nextToken.type.begin(), nextToken.type.end(), "decnumber") ){ 
+ else if ( equal(nextToken.type.begin(), nextToken.type.end(), "decnumber") ){ 
 verify("decnumber");} else { error();
 }result = atof(lastToken.value.c_str());
 }
@@ -78,17 +79,17 @@ verify("decnumber");} else { error();
 void Factor(double& result)
 {
 double sign=1;
-if ( equal(nextToken.type.begin(), nextToken.type.end(), "tonken-") ){ 
-verify("tonken-");
+if ( equal(nextToken.type.begin(), nextToken.type.end(), "token-") ){ 
+verify("token-");
 sign = -1;
 
 }if ( equal(nextToken.type.begin(), nextToken.type.end(), "decnumber") ||equal(nextToken.type.begin(), nextToken.type.end(), "number") ){ 
 Number(result);
 } 
-if ( equal(nextToken.type.begin(), nextToken.type.end(), "tonken(") ){ 
-verify("tonken(");
+ else if ( equal(nextToken.type.begin(), nextToken.type.end(), "token(") ){ 
+verify("token(");
 Expression(result);
-verify("tonken)");
+verify("token)");
 } else { error();
 }result*=sign;
 }
@@ -97,14 +98,14 @@ void Term(double& result)
 {
 double result1=0;double result2=0;
 Factor(result1);
-while( equal(nextToken.type.begin(), nextToken.type.end(), "tonken*") ||equal(nextToken.type.begin(), nextToken.type.end(), "tonken/") ){ 
-if ( equal(nextToken.type.begin(), nextToken.type.end(), "tonken*") ){ 
-verify("tonken*");
+while( equal(nextToken.type.begin(), nextToken.type.end(), "token*") ||equal(nextToken.type.begin(), nextToken.type.end(), "token/") ){ 
+if ( equal(nextToken.type.begin(), nextToken.type.end(), "token*") ){ 
+verify("token*");
 Factor(result2);
 result1*=result2;
 } 
-if ( equal(nextToken.type.begin(), nextToken.type.end(), "tonken/") ){ 
-verify("tonken/");
+ else if ( equal(nextToken.type.begin(), nextToken.type.end(), "token/") ){ 
+verify("token/");
 Factor(result2);
 result1/=result2;
 } else { error();
@@ -116,14 +117,14 @@ void Expression(double& result)
 {
 double result1=0;double result2=0;
 Term(result1);
-while( equal(nextToken.type.begin(), nextToken.type.end(), "tonken+") ||equal(nextToken.type.begin(), nextToken.type.end(), "tonken-") ){ 
-if ( equal(nextToken.type.begin(), nextToken.type.end(), "tonken+") ){ 
-verify("tonken+");
+while( equal(nextToken.type.begin(), nextToken.type.end(), "token+") ||equal(nextToken.type.begin(), nextToken.type.end(), "token-") ){ 
+if ( equal(nextToken.type.begin(), nextToken.type.end(), "token+") ){ 
+verify("token+");
 Term(result2);
 result1+=result2;
 } 
-if ( equal(nextToken.type.begin(), nextToken.type.end(), "tonken-") ){ 
-verify("tonken-");
+ else if ( equal(nextToken.type.begin(), nextToken.type.end(), "token-") ){ 
+verify("token-");
 Term(result2);
 result1-=result2;
 } else { error();
@@ -135,20 +136,20 @@ void Stat()
 {
 double value=0;
 Expression(value);
-cout << "Resultado: "<< value;
+cout << "Resultado: "<< value << endl;
 }
 
 void Expr()
 {
-while( equal(nextToken.type.begin(), nextToken.type.end(), "decnumber") ||equal(nextToken.type.begin(), nextToken.type.end(), "number") ||equal(nextToken.type.begin(), nextToken.type.end(), "tonken(") ||equal(nextToken.type.begin(), nextToken.type.end(), "tonken-") ){ 
+while( equal(nextToken.type.begin(), nextToken.type.end(), "decnumber") ||equal(nextToken.type.begin(), nextToken.type.end(), "number") ||equal(nextToken.type.begin(), nextToken.type.end(), "token(") ||equal(nextToken.type.begin(), nextToken.type.end(), "token-") ){ 
 Stat();
-verify("tonken;");
+verify("token;");
 while( equal(nextToken.type.begin(), nextToken.type.end(), "white") ){ 
 verify("white");}
 }
 while( equal(nextToken.type.begin(), nextToken.type.end(), "white") ){ 
 verify("white");}
-verify("tonken.");
+verify("token.");
 }
 
 
@@ -164,6 +165,13 @@ int main(int argc, char **argv)
     }
     cout << input << endl;
     scanner = new ScannerGrammar(input);
+    /*
+    while (!scanner->readTokens.empty()){
+        cout << scanner->readTokens.front().value << endl;
+        scanner->readTokens.pop();
+    }*/
+    nextToken = scanner->readTokens.front();
+    cout << "token " << nextToken.value << nextToken.type << endl;
 Expr();
     return 0;
 }

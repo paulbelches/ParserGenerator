@@ -694,7 +694,6 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
     string readCharacters = "";
     //cout << chain << endl;
     while(i < chain.size()){
-        
         if (this->whitespaces.find((int)chain[i]) != whitespaces.end()){
             i = i + 1;
         } else {
@@ -751,15 +750,15 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
                             tempToken.type = keywords[readCharacters];
                             tempToken.value = readCharacters;
                             readTokens.push(tempToken);
-                            //cout << "ACA 3" << readCharacters <<  endl;
-                            //cout << "<" << readCharacters << ", " << keywords[readCharacters] << ">" << endl;
+                            cout << "ACA 3" << readCharacters <<  endl;
+                            cout << "<" << readCharacters << ", " << keywords[readCharacters] << ">" << endl;
                         } else {
                             token tempToken;
                             tempToken.type = expressionsId[terminalId];
                             tempToken.value = readCharacters;
                             readTokens.push(tempToken);
-                            //cout << "ACA 4" << readCharacters <<  endl;
-                            //cout << "<" << readCharacters << "," << expressionsId[terminalId] << ">" << endl;
+                            cout << "ACA 4" << readCharacters <<  endl;
+                            cout << "<" << readCharacters << "," << expressionsId[terminalId] << ">" << endl;
                         }
                         readCharacters = "";
                         while (chequedStates.size() > 1){
@@ -777,17 +776,19 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
         }
     }
     //Process the pending chain
+    cout << "Es terminal" << isTerminal(currentState) << endl;
     int terminalId = isTerminal(currentState);
     token tempToken;
+    cout << readCharacters << endl;
     if (terminalId > 0){
         if (exceptTokens[expressionsId[terminalId]] && keywords[readCharacters].size() > 0){
             tempToken.type = keywords[readCharacters];
-            //cout << "ACA 5 " << readCharacters <<  endl;
+            cout << "ACA 5 " << readCharacters <<  endl;
             tempToken.value = readCharacters;
             readTokens.push(tempToken);
         } else {
             tempToken.type = expressionsId[terminalId];
-            //cout << "ACA 6 " << readCharacters << " " << readCharacters.size() << " " << tempToken.type <<  endl;
+            cout << "ACA 6 " << readCharacters << " " << readCharacters.size() << " " << tempToken.type <<  endl;
             tempToken.value = readCharacters;
             readTokens.push(tempToken);
         }
