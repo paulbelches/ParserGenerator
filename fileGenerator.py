@@ -1,12 +1,10 @@
 import random
 
 NUMBERS = list(map(chr, range(48, 58)))
-CAPLETTERS = list(map(chr, range(65, 90)))
-LOWLETTERS = list(map(chr, range(97, 123)))
 WHITE = [chr(13), chr(9), chr(10), ' ']
-SIGN = ['+', '-', '']
-ARITMETICAKEYWORDS = ["while", "do", "if", "switch"]
-HEXNUMBERKEYWORDS = ["while", "do"]
+SIGN = ['-', '']
+OPERATOR = ['+', '-', '/', '*']
+
 
 def getNum(min, max):
     return str(random.randint(min, max))
@@ -30,16 +28,10 @@ def writeFile(fileName, data):
     f.close()
 
 def number():
-    return getNum(0, 10000)
+    return getNum(1, 10000)
 
 def decnumber():
-    return getFloat(0, 10000)
-
-def ident():
-    return randomString(NUMBERS + CAPLETTERS + LOWLETTERS, 5, '', False)
-
-def hexnumber():
-    return randomString(NUMBERS + CAPLETTERS[0:6], 5, '', False) + 'H'
+    return getFloat(1, 10000)
 
 def white():
     return randomString(WHITE, 1, '', False)
@@ -47,20 +39,17 @@ def white():
 def signnumber():
     return randomString(SIGN, 1, '', False) + number()
 
-def keyHex():
-    return randomString(HEXNUMBERKEYWORDS, 1, '', False)
+def operator():
+    return randomString(OPERATOR, 1, '', False)
 
-def keyAri():
-    return randomString(ARITMETICAKEYWORDS, 1, '', False)
+def operation():
+    return randomString([number, decnumber, operation], 1, '', True) + operator() + randomString([number, decnumber, operation], 1, '', True) 
 
-HEXNUMBERTATG = randomString([ident, hexnumber, number, signnumber, white, keyHex], 10000, ' ',True)
-DOUBLEATG = randomString([number, decnumber, white], 10000, ' ',True)
-ARITMETICAATG = randomString([number, decnumber, white, keyAri, ident], 10000, ' ',True)
+def operationError():
+    return randomString([number, decnumber, operation, white], 1, '', True) + operator() + operator() + randomString([number, decnumber, operation], 1, '', True) 
 
-#print("Hex\n", HEXNUMBERTATG)
-#print("double\n", DOUBLEATG)
-#print("ari\n", ARITMETICAATG)
+DOUBLEATG = randomString([operation], 1000, ';',True)
+DOUBLEERRORATG = randomString([operationError], 1000, ';',True)
 
-writeFile("hex.txt", HEXNUMBERTATG)
-writeFile("double.txt", DOUBLEATG)
-writeFile("ari.txt", ARITMETICAATG)
+writeFile("double.txt", operation() + DOUBLEATG + ";.")
+writeFile("doubleErrors.txt", operation() + DOUBLEERRORATG + ";.")

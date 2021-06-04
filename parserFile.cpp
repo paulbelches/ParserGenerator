@@ -65,9 +65,16 @@ void verify(string type){
 
 int main(int argc, char **argv)
 {
-    //string filePath = argv[1];
+    if (argc < 2){
+        cout << "An error ocurred\n";
+        cout << "Missing file path argument" << endl;
+        return 0;
+    }
+    
+    string filePath = argv[1];
     string input;
-    generateStream(input, "input.txt");
+    generateStream(input, filePath);
+    
     if (input.size() <= 0){
         cout << "Input file is empty\n";
         return 0;

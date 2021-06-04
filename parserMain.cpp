@@ -769,6 +769,7 @@ int main(int argc, char **argv) {
     map<string, string> blankTokens;
 
     try {
+        //Read File
         string filePath = argv[1];
         string input;
         generateStream(input, filePath);
@@ -776,10 +777,12 @@ int main(int argc, char **argv) {
             cout << "Input file is empty\n";
             return 0;
         }
+        //Get tokens
         ScannerCocol* cocolS = new ScannerCocol(input);
         vector<token> production;
         string id = "";
         vector<string> productionsIds;
+        //Save productions
         while (!cocolS->readTokens.empty()){
             //cout << cocolS->readTokens.front().value << " " << cocolS->readTokens.front().type << endl;
             if (id.size() == 0) {
@@ -813,11 +816,12 @@ int main(int argc, char **argv) {
         string firms;
         string firstcall;
         for (int i = 0; i < productionsIds.size(); i++){
-            //cout << "///////// tree"+ to_string(i) +" ///////////" << endl;
-            //cout << "Next: " << productionsIds[i] << endl ;
+            //Generate syntax tree
             Graph* tempGraph = new Graph(productionsMap[productionsIds[i]]);
             string value = printGraph(tempGraph->root, 0);
+            //Generate Code
             string generatedMethod = generateCode(tempGraph->root, NULL, productionsIds, productionsMap);
+            //Get firm
             string tempFirm = optainFirm(generatedMethod);
             if (firstcall.size() == 0){
                 firstcall = tempFirm.substr(5, tempFirm.size() - 5);
@@ -826,7 +830,9 @@ int main(int argc, char **argv) {
             methods =  "void " + generatedMethod + "\n" + methods;
         }
         methods = firms + "\n" + methods;
+        //Write tokens
         insertBlankTokens(blankTokens);
+        //Insert methods
         insertMethods(methods, firstcall);
         //Compile parser
         string command = "c++ generatedParser.cpp -o parser.run";
