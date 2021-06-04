@@ -1,11 +1,12 @@
 #include <iostream>
 #include <string>
 #include "methods.h"
-#include "scanner.h"
 #include "cocol.h"
 #include <algorithm>
 using namespace std;
-
+const string flag = "        //INSERT EXPRESSIONS";
+const string methodsflag = "//INSERT METHODS";
+const string firstcallflag = "    //INSERT FIRSTCALL";
 /*
    cout << "Compiling file" << endl;
    string command = "c++ parser.cpp -o parser.run";
@@ -255,7 +256,11 @@ set<string> productionFirstpos( string ident  , vector<string> productionsIds, m
                     set<string> tempResult = productionFirstpos( productionsMap[ident][cont].value, productionsIds, productionsMap);
                     result.insert(tempResult.begin(), tempResult.end());
                 } else {
-                    result.insert( productionsMap[ident][cont].value);
+                    result.insert( 
+                        equal(productionsMap[ident][cont].type.begin(), productionsMap[ident][cont].type.end(), "ident") ?
+                        "\"" + productionsMap[ident][cont].value + "\"":
+                        "\"tonken" + productionsMap[ident][cont].value.substr(1, productionsMap[ident][cont].value.size())
+                    );
                 }
                 readIdent = false;
                 if (!inJoin){
@@ -322,9 +327,14 @@ set<string> firstpos(ProductionNode* root, vector<string> productionsIds,map<str
             tempSet =  productionFirstpos( root->data.value , productionsIds, productionsMap);
             result.insert(tempSet.begin(), tempSet.end());
         } else {
-            result.insert(root->data.value);
+            //cout << "ident " << root->data.value << endl; 
+            result.insert("\""+root->data.value+"\"");
         }
+    } else if (equal(root->data.type.begin(), root->data.type.end(), "string")){
+        //cout << "token " << root->data.value << endl; 
+        result.insert("\"tonken" + root->data.value.substr(1, root->data.value.size()));
     } else {
+        //cout << "aja...." << root->data.value << endl;
         result.insert(root->data.value);
     } 
     return result;
@@ -484,8 +494,6 @@ string printGraph(ProductionNode* root, int counter){
     return result + (root->left == NULL ? "" : printGraph(root->left, counter++)) + (root->right == NULL ? "" : printGraph(root->right, counter++));
 }
 
-
-
 string getNextToken(ProductionNode* root, int state){
     if (state == 0){
         //ver si soy el hijo izquierdo
@@ -519,7 +527,6 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
             return "" + (root->left == NULL ? "" : generateCode(root->left, root, productionsIds, productionsMap)) + (root->right == NULL ? "" : generateCode(root->right, root, productionsIds, productionsMap));
     } else if (equal(root->data.type.begin(), root->data.type.end(), "attr")){
         string nextTokenType = getNextToken(father->right,0);
-        //cout << "--------------------------------------------------------" << endl << nextTokenType << endl << "--------------------------------------------------------" << endl;
         return "(" + root->data.value.substr(1, root->data.value.size() - 2) + ")" 
                 + (equal(nextTokenType.begin(), nextTokenType.end(), "eq") ? "" : ";") + "\n" 
                 + (root->left == NULL ? "" : generateCode(root->left, root, productionsIds, productionsMap)) + (root->right == NULL ? "" : generateCode(root->right, root, productionsIds, productionsMap));
@@ -536,23 +543,34 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
         if (root->firstpos.size() == 0){
             fillFunctions(root, productionsIds, productionsMap);
         }
+        bool first = true;
         string condition1 ;
         for(const auto &i : root->left->firstpos) {
-            condition1 = condition1 + "case(" + i +"):";
+            condition1 = condition1 + (first ? " " : "||" ) 
+            +  "equal(nextToken.type.begin(), nextToken.type.end(), " + i +") ";
+            first = false;
         }
+        first = true;
         string condition2 ;
         for(const auto &i : root->right->firstpos) {
-            condition2 = condition2 + "case(" + i +"):";
+            condition2 = condition2 + (first ? " " : "||" ) 
+            +  "equal(nextToken.type.begin(), nextToken.type.end(), " + i +") ";
+            first = false;
         }
-        return "switch(){ \n    "+condition1+ generateCode(root->left, root, productionsIds, productionsMap)+ 
-                  "break; \n    "+condition2+ generateCode(root->right, root, productionsIds, productionsMap) + "break; defaul: error();\n}";
+        return "if ("+condition1 + "){ \n" + generateCode(root->left, root, productionsIds, productionsMap)
+            + "} \nif ("+condition2+ "){ \n" + generateCode(root->right, root, productionsIds, productionsMap) 
+            + "} else { error();\n}";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "lock")){
         if (root->firstpos.size() == 0){
             fillFunctions(root, productionsIds, productionsMap);
         }
         string condition ;
+        bool first = true;
         for(const auto &i : root->firstpos) {
-            condition = condition + i + " ";
+            //cout << i << "\n";
+            condition = condition + (first ? " " : "||" ) 
+            + "equal(nextToken.type.begin(), nextToken.type.end(), " + i + ") ";
+            first = false;
         }
         return "while("+condition+"){ \n" + generateCode(root->left, root, productionsIds, productionsMap) + "}\n";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "conditional")){
@@ -560,13 +578,16 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
             fillFunctions(root, productionsIds, productionsMap);
         }
         string condition ;
+        bool first = true;
         for(const auto &i : root->left->firstpos) {
-            condition = condition + "case(" + i +"):";
+            condition = condition + (first ? " " : "||" ) 
+            +  "equal(nextToken.type.begin(), nextToken.type.end(), " + i +") ";
+            first = false;
         }
-        return "switch(){ \n    "+condition + generateCode(root->left, root, productionsIds, productionsMap)+ "break;\n}";
+        return "if ("+condition+ "){ \n" + generateCode(root->left, root, productionsIds, productionsMap)+ "\n}";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "string")){
         //add to extra tokens list
-        return "verify(" + root->data.value + ");";
+        return "verify(\"tonken" + root->data.value.substr(1, root->data.value.size()) + ");\n";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "ident")){
         //Search if ident in term list
         bool isterm = false;
@@ -582,16 +603,97 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
             string nextTokenType = getNextToken(root,0);
             //cout << "Next: " << nextTokenType << endl ;
             return root->data.value + 
-                + (equal(nextTokenType.begin(), nextTokenType.end(), "attr") ? "" : "()") + 
-                + (equal(nextTokenType.begin(), nextTokenType.end(), "eq") ? "" : (equal(nextTokenType.begin(), nextTokenType.end(), "attr") ? "" : ";")) + "\n";
+                + (equal(nextTokenType.begin(), nextTokenType.end(), "attr") ? "" : "()")  
+                + (equal(nextTokenType.begin(), nextTokenType.end(), "eq") ? "" : (equal(nextTokenType.begin(), nextTokenType.end(), "attr") ? "" : ";")) 
+                + (equal(nextTokenType.begin(), nextTokenType.end(), "attr") ? "" : "\n") ;
         } 
-        return "verify(" + root->data.value + ");";
-        //string nextTokenType = getNextToken(father->right,0);
-        //add to extra tokens list
+        return "verify(\"" + root->data.value + "\");";
     } else {
         return root->data.value
                     + (root->left == NULL ? "" : generateCode(root->left, root, productionsIds, productionsMap)) + (root->right == NULL ? "" : generateCode(root->right, root, productionsIds, productionsMap));
     }
+}
+
+/*---------------------------------------------------------------------
+ * Function:      lettersToNums
+ * Purpose:       Pass strings and chars for its numerical representations
+ * In arg:        line the input line
+ * Return val:    sustituted line
+ */
+string lettersToNums(string line){
+  string result = "";
+  for (int i = 1; i < line.size()-1; i++){
+    result = result + '(' + to_string( (int)line[i] ) + ')';
+  }  
+  return "(" + result + ")";
+}
+
+void insertBlankTokens(map<string, string> blankTokens){
+    string line;
+    ifstream basefile;
+    basefile.open("scanner.h");
+    string filecontent;
+    if (basefile.is_open())
+    {
+        while ( getline (basefile,line) )
+        {
+            if (equal(line.begin(), line.end(), flag.begin(), flag.end())){
+                map<string, string>::iterator it = blankTokens.begin();
+                while (it != blankTokens.end())
+                {
+                    filecontent = filecontent + "        expressions.push_back(\"" + it->second + "\");\n";
+                    filecontent = filecontent + "        expressionsId.push_back(\"" + it->first + "\");\n";
+                    it++;
+                }
+            } else {
+                filecontent = filecontent + line + "\n";
+            }
+        }
+        basefile.close();
+    }
+
+    ofstream newfile;
+    newfile.open("scanner.h");
+    newfile << filecontent << endl;
+    newfile.close();
+    //cout << filecontent << endl;
+}
+
+void insertMethods(string methods, string firstcall){
+    string line;
+    ifstream basefile;
+    basefile.open("parserFile.cpp");
+    string filecontent;
+    if (basefile.is_open())
+    {
+        while ( getline (basefile,line) )
+        {
+            if (equal(line.begin(), line.end(), methodsflag.begin(), methodsflag.end())){
+                filecontent = filecontent + methods + "\n";
+            } else if (equal(line.begin(), line.end(), firstcallflag.begin(), firstcallflag.end())){
+                filecontent = filecontent + firstcall + "\n";
+            } else {
+                filecontent = filecontent + line + "\n";
+            }
+        }
+        basefile.close();
+    }
+
+    ofstream newfile;
+    newfile.open("generatedParser.cpp");
+    newfile << filecontent << endl;
+    newfile.close();
+    //cout << filecontent << endl;
+}
+
+string optainFirm(string input){
+    int i = 0;
+    for (i = 0; i < input.size(); i++){
+        if (input[i] == '{' ){
+            break;
+        }
+    }
+    return "void " + input.substr(0, i-1)+";";
 }
 
 int main(int argc, char **argv) {   
@@ -602,7 +704,7 @@ int main(int argc, char **argv) {
         return 0;
     }*/
     map<string, vector<token>> productionsMap;
-
+    map<string, string> blankTokens;
 
     try {
         string filePath = argv[1];
@@ -612,62 +714,58 @@ int main(int argc, char **argv) {
             cout << "Input file is empty\n";
             return 0;
         }
-        //cout << input << endl;
         ScannerCocol* cocolS = new ScannerCocol(input);
-        //ScannerGrammar* s; //= new Scanner(input);
-        cout << "Impresion" << endl;
         vector<token> production;
         string id = "";
         vector<string> productionsIds;
         while (!cocolS->readTokens.empty()){
+            //cout << cocolS->readTokens.front().value << " " << cocolS->readTokens.front().type << endl;
             if (id.size() == 0) {
                 if (equal(cocolS->readTokens.front().type.begin(), cocolS->readTokens.front().type.end(), "ident")){
+                    //cout << cocolS->readTokens.front().value << endl;
                     id = cocolS->readTokens.front().value;
-                   //cout <<  cocolS->readTokens.front().type << " : " <<  cocolS->readTokens.front().value << endl;
                     production.push_back(cocolS->readTokens.front());
                 } else {
                     cout << "error" << endl;
                     return 0;
                 }
             } else {
-                if ( 
-                    !equal(cocolS->readTokens.front().type.begin(), cocolS->readTokens.front().type.end(), "whiteToken")
-                ){
-                    //cout <<  cocolS->readTokens.front().type  << " : " <<  cocolS->readTokens.front().value << endl;
+                if (!equal(cocolS->readTokens.front().type.begin(), cocolS->readTokens.front().type.end(), "whiteToken")){
                     production.push_back(cocolS->readTokens.front());
+                    if (equal(cocolS->readTokens.front().type.begin(), cocolS->readTokens.front().type.end(), "string")){ 
+                        string s = cocolS->readTokens.front().value;
+                        blankTokens["token" + s.substr(1, s.size() - 2)] = lettersToNums(s);
+                    }
+                    if (equal(cocolS->readTokens.front().type.begin(), cocolS->readTokens.front().type.end(), "p_end")){ 
+                        productionsMap[id] = production;
+                        productionsIds.push_back(id);
+                        production.clear();
+                        id = "";
+                    }
                 }
-            }
-            //cout <<  cocolS->readTokens.front().type << " : " <<  cocolS->readTokens.front().value << endl;
-            //production.push_back(cocolS->readTokens.front());
-            if (equal(cocolS->readTokens.front().type.begin(), cocolS->readTokens.front().type.end(), "p_end")){
-                //cout << endl;
-                productionsMap[id] = production;
-                productionsIds.push_back(id);
-                production.clear();
-                id = "";
             }
             cocolS->readTokens.pop();
         }
-
-        for (int i = 0; i < productionsIds.size()/*2*/; i++){
+        
+        string methods;
+        string firms;
+        string firstcall;
+        for (int i = 0; i < productionsIds.size(); i++){
             cout << "///////// tree"+ to_string(i) +" ///////////" << endl;
+            cout << "Next: " << productionsIds[i] << endl ;
             Graph* tempGraph = new Graph(productionsMap[productionsIds[i]]);
             string value = printGraph(tempGraph->root, 0);
-            //cout << value << endl;
-            ofstream newfile("tree"+ to_string(i) + ".txt");
-            newfile << value << endl;
-            newfile.close();
-            /*
-            cout << "++++++++++++++++++firstpos++++++++++++++++++" << endl;
-            productionsFirstPos[productionsIds[i]] = productionFirstpos(productionsIds[i] , productionsIds, productionsMap);
-            for(const auto &i : productionsFirstPos[productionsIds[i]]) {
-                cout << i << " ";
-                //cout << i << " " << (int)i << " " << isspace(i) << endl;
+            string generatedMethod = generateCode(tempGraph->root, NULL, productionsIds, productionsMap);
+            string tempFirm = optainFirm(generatedMethod);
+            if (firstcall.size() == 0){
+                firstcall = tempFirm.substr(5, tempFirm.size() - 5);
             }
-            cout << endl;
-            cout << "++++++++++++++++++++++++++++++++++++++++++" << endl;*/
-            cout << "void " + generateCode(tempGraph->root, NULL, productionsIds, productionsMap) << endl;
+            firms = firms + optainFirm(generatedMethod) + "\n";
+            methods =  "void " + generatedMethod + "\n" + methods;
         }
+        methods = firms + "\n" + methods;
+        insertBlankTokens(blankTokens);
+        insertMethods(methods, firstcall);
     } catch (std::exception& e) {
         cout << "Error: An error ocurred\n";
         cout << "Check your expression and try again\n";

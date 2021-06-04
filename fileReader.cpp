@@ -693,6 +693,7 @@ int main (int argc, char* argv[]) {
       } else if (equal(line.begin(), line.end(), flag.begin(), flag.end())){
         string acum = "";
         cout << "Writing whitespaces " << endl;
+        newfile << flag << endl;
         if (resultWhiteSpaces.size() > 0){
           for(int i = 1; i < resultWhiteSpaces.size() - 1; i++){
             if (resultWhiteSpaces[i] == ','){

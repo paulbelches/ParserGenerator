@@ -27,17 +27,17 @@ PRODUCTIONS
 Expr= {Stat ";"{white}}{white}".".
 
 Stat = 							(.double value=0;.)
-	Expression<value>		(.System.Console.WriteLine("Resultado: {0}",value);.)
+	Expression<value>		(.cout << "Resultado: "<< value;.)
 	.
 
-Expression<&double result> =			(.double result1=0;double result2=0;.)
+Expression<double& result> =			(.double result1=0;double result2=0;.)
 	Term<result1>
 	{    "+"Term<result2>		(.result1+=result2;.)
 	   | "-"Term<result2>		(.result1-=result2;.)
 	}								(.result=result1;.)
 	.
 
-Term<&double result>=				(.double result1=0;double result2=0;.)
+Term<double& result>=				(.double result1=0;double result2=0;.)
 	Factor<result1>
 	{    "*"Factor<result2>	(.result1*=result2;.)
 	   | "/"Factor<result2>	(.result1/=result2;.)
@@ -45,7 +45,7 @@ Term<&double result>=				(.double result1=0;double result2=0;.)
 	.
 
 
-Factor<&double result> =		(.double sign=1;.)
+Factor<double& result> =		(.double sign=1;.)
 	["-"						(.sign = -1;.)
 	]
 	(Number<result>
@@ -53,8 +53,8 @@ Factor<&double result> =		(.double sign=1;.)
 	)							(.result*=sign;.)
 	.
 
-Number<&double result> =	
+Number<double& result> =	
 	(number				
-	|decnumber)(.result = double.Parse(LastToken.Value);.)
+	|decnumber)(.result = atof(lastToken.value.c_str());.)
 	.
 END Double

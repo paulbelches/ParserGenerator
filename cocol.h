@@ -18,6 +18,7 @@ class ScannerCocol {
     AFDirect* afdirect;
     //Scanner(string input){
     ScannerCocol(string input){
+        //INSERT EXPRESSIONS
         whitespaces.insert(10);
         whitespaces.insert(13);
         exceptTokens["whiteToken"] = 0;

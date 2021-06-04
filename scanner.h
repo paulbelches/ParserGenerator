@@ -18,6 +18,22 @@ class ScannerGrammar {
     AFDirect* afdirect;
     //Scanner(string input){
     ScannerGrammar(string input){
+        expressions.push_back("((40))");
+        expressionsId.push_back("token(");
+        expressions.push_back("((41))");
+        expressionsId.push_back("token)");
+        expressions.push_back("((42))");
+        expressionsId.push_back("token*");
+        expressions.push_back("((43))");
+        expressionsId.push_back("token+");
+        expressions.push_back("((45))");
+        expressionsId.push_back("token-");
+        expressions.push_back("((46))");
+        expressionsId.push_back("token.");
+        expressions.push_back("((47))");
+        expressionsId.push_back("token/");
+        expressions.push_back("((59))");
+        expressionsId.push_back("token;");
         exceptTokens["number"] = 1;
         expressions.push_back("(48|49|50|51|52|53|54|55|56|57)((48|49|50|51|52|53|54|55|56|57))*");
         expressionsId.push_back("number");
@@ -50,3 +66,4 @@ class ScannerGrammar {
         afdirect->simulate(input, readTokens);
     }
 };
+

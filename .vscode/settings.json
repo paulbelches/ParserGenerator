@@ -15,5 +15,6 @@
         "regex": "cpp",
         "valarray": "cpp",
         "iosfwd": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }

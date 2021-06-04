@@ -778,22 +778,20 @@ void AFDirect::simulate(string chain, queue<token>& readTokens){
     }
     //Process the pending chain
     int terminalId = isTerminal(currentState);
+    token tempToken;
     if (terminalId > 0){
         if (exceptTokens[expressionsId[terminalId]] && keywords[readCharacters].size() > 0){
-            token tempToken;
             tempToken.type = keywords[readCharacters];
+            //cout << "ACA 5 " << readCharacters <<  endl;
             tempToken.value = readCharacters;
             readTokens.push(tempToken);
-            ////cout << "ACA 5" <<  endl;
         } else {
-            token tempToken;
-            tempToken.type = keywords[readCharacters];
+            tempToken.type = expressionsId[terminalId];
+            //cout << "ACA 6 " << readCharacters << " " << readCharacters.size() << " " << tempToken.type <<  endl;
             tempToken.value = readCharacters;
             readTokens.push(tempToken);
-            ////cout << "ACA 6" <<  endl;
         }
     }
-    cout << i << endl;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*---------------------------------------------------------------------
