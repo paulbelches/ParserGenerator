@@ -619,6 +619,12 @@ string mergeWhiteSpaces(vector<string>& whiteSpaces){
   return result; 
 }
 
+/*---------------------------------------------------------------------
+ * Function:      removeSpaces
+ * Purpose:       Remove spaces
+ * In arg:        chain, the chain to be clean
+ * Return val:    Resulting chain
+ */
 string removeSpaces (string chain){
   //cout << chain << endl;
   string result = "";

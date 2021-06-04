@@ -38,6 +38,12 @@ int generateStream(string& file, string filePath){
     return 1;
 }
 
+/*---------------------------------------------------------------------
+ * Function:      isOperand
+ * Purpose:       Check if a token is a operand 
+ * In arg:        type, token type
+ * Return val:   if it is a operand or not
+ */
 bool isOperand(string type){
     if (  (equal(type.begin(), type.end(), "ident"))
     ||    (equal(type.begin(), type.end(), "eq"))
@@ -50,6 +56,12 @@ bool isOperand(string type){
     return false;
 }
 
+/*---------------------------------------------------------------------
+ * Function:      precedence
+ * Purpose:       Get the token precedence 
+ * In arg:        type, token type
+ * Return val:    the token precendence
+ */
 int precedence(string type){
     if ( (equal(type.begin(), type.end(), "p_open")) ){
         return 0;
@@ -69,7 +81,12 @@ int precedence(string type){
     }
 }
 
-
+/*---------------------------------------------------------------------
+ * Function:      expand
+ * Purpose:       Add concat tokens to production 
+ * In arg:        production, list of tokens
+ * Return val:    the modify production
+ */
 vector<token> expand(vector<token> production){
     vector<token> result;
     //cout << "entre" << endl;
@@ -121,26 +138,12 @@ vector<token> expand(vector<token> production){
     return result;
 }
 
-vector<token> addAtributes(vector<token> production){
-    vector<token> result;
-    for (int i = 0; i < production.size(); i = i + 1){
-        result.push_back(production[i]);
-        if (equal(production[i].type.begin(), production[i].type.end(), "ident")){
-            token tempToken;
-            tempToken.type = "attr";
-            tempToken.value = "<>";
-            if (i < production.size()){
-                if (!equal(production[i+1].type.begin(), production[i+1].type.end(), "attr")){
-                    result.push_back(tempToken);
-                } 
-            } else {
-                result.push_back(tempToken);
-            }
-        }
-    }
-    return result;
-}
-
+/*---------------------------------------------------------------------
+ * Function:      sustitute
+ * Purpose:       Convert the cocol sintx to the use sintax in the proyect
+ * In arg:        production, list of tokens
+ * Return val:    the modify production
+ */
 vector<token> sustitute(vector<token> production){
     vector<token> result;
     for (int i = 0; i < production.size(); i = i + 1){
@@ -176,6 +179,18 @@ vector<token> sustitute(vector<token> production){
     }
     return result;
 }
+/*---------------------------------------------------------------------
+ * Class:         ProductionNode
+ * Purpose:       Represent nodes of a syntax tree
+ * Attributes:    
+ *      id        The id of the node
+ *      data      The token it represents
+ *      nullable  Whether is nullable or not
+ *      firstpos  Firstpos value
+ *      left      Child node to the left
+ *      right     Child node to the right
+ *      father    Father node to the right
+ */
 class ProductionNode{
   public:
   int id;
@@ -226,6 +241,13 @@ bool nullable(ProductionNode* root){
     }
     ///Mmore cases?
 }
+
+/*---------------------------------------------------------------------
+ * Function:      productionFirstpos
+ * Purpose:       Calculate the production First pos
+ * In arg:        ident, the production identifier     productionsIds, the array of production ids      productionsMap, the map of all productions
+ * Return val:    Whether is nullable or not
+ */
 set<string> productionFirstpos( string ident  , vector<string> productionsIds, map<string, vector<token>> productionsMap){
     //cout << ident << endl;
     int cont = 0; 
@@ -473,6 +495,12 @@ class Graph{
   }
 };
 
+/*---------------------------------------------------------------------
+ * Function:      printGraph
+ * Purpose:       Print the syntax tree
+ * In arg:        root, a node from the tree    counter, the depth counter
+ * Return val:    returns the generated string
+ */
 string printGraph(ProductionNode* root, int counter){
     string left = "";
     string right = "";
@@ -494,6 +522,12 @@ string printGraph(ProductionNode* root, int counter){
     return result + (root->left == NULL ? "" : printGraph(root->left, counter++)) + (root->right == NULL ? "" : printGraph(root->right, counter++));
 }
 
+/*---------------------------------------------------------------------
+ * Function:      getNextToken
+ * Purpose:       Optain the next token type
+ * In arg:        root, a node from the tree    state, the function state
+ * Return val:    returns the token type
+ */
 string getNextToken(ProductionNode* root, int state){
     if (state == 0){
         //ver si soy el hijo izquierdo
@@ -515,6 +549,12 @@ string getNextToken(ProductionNode* root, int state){
     return "";
 }
 
+/*---------------------------------------------------------------------
+ * Function:      getNextToken
+ * Purpose:       Generate the production code
+ * In arg:        root, a node from the tree    father, the father node     productionsIds, the array of production ids      productionsMap, the map of all productions
+ * Return val:    returns the generated code
+ */
 string generateCode(ProductionNode* root, ProductionNode* father, vector<string> productionsIds, map<string, vector<token>>  productionsMap){
     string value = "";
     root->father = father;
@@ -631,6 +671,12 @@ string lettersToNums(string line){
   return "(" + result + ")";
 }
 
+/*---------------------------------------------------------------------
+ * Function:      insertBlankTokens
+ * Purpose:       Add blank tokens to the grammar scanner
+ * In arg:        line the input line
+ * Return val:    -----------------
+ */
 void insertBlankTokens(map<string, string> blankTokens){
     string line;
     ifstream basefile;
@@ -662,6 +708,13 @@ void insertBlankTokens(map<string, string> blankTokens){
     //cout << filecontent << endl;
 }
 
+
+/*---------------------------------------------------------------------
+ * Function:      insertBlankTokens
+ * Purpose:       Add the methods to the generated parser
+ * In arg:        line the input line
+ * Return val:    -----------------
+ */
 void insertMethods(string methods, string firstcall){
     string line;
     ifstream basefile;
@@ -689,6 +742,12 @@ void insertMethods(string methods, string firstcall){
     //cout << filecontent << endl;
 }
 
+/*---------------------------------------------------------------------
+ * Function:      optainFirm
+ * Purpose:       From a generated method optain the method firm
+ * In arg:        line the input line
+ * Return val:    the methods firm
+ */
 string optainFirm(string input){
     int i = 0;
     for (i = 0; i < input.size(); i++){
