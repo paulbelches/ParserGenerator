@@ -35,22 +35,23 @@ int generateStream(string& file, string filePath){
 }
 
 void error(string token){
-    cout << "Error expected "<< token << endl;
-    throw std::invalid_argument( "bad expresion received" );
+    cout << "Error expected token(s): "<< token << endl;
+    //throw std::invalid_argument( "bad expresion received" );
 }
 
 void get() {
-    cout << "Entre al get" << endl;
+    //cout << "Entre al get" << endl;
     lastToken = nextToken;
     scanner->readTokens.pop();
     nextToken = scanner->readTokens.front();
-    cout << "token " << nextToken.value << nextToken.type << endl;
+    //cout << "token " << nextToken.value << nextToken.type << endl;
 }
 
 void verify(string type){
+    /*
     cout << "Entre al verify" << endl;
     cout << "Busco " << type << endl;
-    cout << "Recibi" <<nextToken.type << endl;
+    cout << "Recibi" <<nextToken.type << endl;*/
     bool doesPass = false; 
     doesPass = equal(nextToken.type.begin(), nextToken.type.end(), type.begin(), type.end());
     if (doesPass){
@@ -72,7 +73,7 @@ void Number(double& result)
 if ( equal(nextToken.type.begin(), nextToken.type.end(), "number") ){ 
 verify("number");} 
  else if ( equal(nextToken.type.begin(), nextToken.type.end(), "decnumber") ){ 
-verify("decnumber");} else { error();
+verify("decnumber");} else { error("number decnumber ");
 }result = atof(lastToken.value.c_str());
 }
 
@@ -90,7 +91,7 @@ Number(result);
 verify("token(");
 Expression(result);
 verify("token)");
-} else { error();
+} else { error("decnumber number token( ");
 }result*=sign;
 }
 
@@ -108,7 +109,7 @@ result1*=result2;
 verify("token/");
 Factor(result2);
 result1/=result2;
-} else { error();
+} else { error("token* token/ ");
 }}
 result=result1;
 }
@@ -127,7 +128,7 @@ result1+=result2;
 verify("token-");
 Term(result2);
 result1-=result2;
-} else { error();
+} else { error("token+ token- ");
 }}
 result=result1;
 }
@@ -171,7 +172,7 @@ int main(int argc, char **argv)
         scanner->readTokens.pop();
     }*/
     nextToken = scanner->readTokens.front();
-    cout << "token " << nextToken.value << nextToken.type << endl;
+    //cout << "token " << nextToken.value << nextToken.type << endl;
 Expr();
     return 0;
 }

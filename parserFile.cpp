@@ -35,12 +35,12 @@ int generateStream(string& file, string filePath){
 }
 
 void error(string token){
-    cout << "Error expected "<< token << endl;
-    throw std::invalid_argument( "bad expresion received" );
+    cout << "Error expected token(s): "<< token << endl;
+    //throw std::invalid_argument( "bad expresion received" );
 }
 
 void get() {
-    cout << "Entre al get" << endl;
+    //cout << "Entre al get" << endl;
     lastToken = nextToken;
     scanner->readTokens.pop();
     nextToken = scanner->readTokens.front();
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
         scanner->readTokens.pop();
     }*/
     nextToken = scanner->readTokens.front();
-    cout << "token " << nextToken.value << nextToken.type << endl;
+    //cout << "token " << nextToken.value << nextToken.type << endl;
     //INSERT FIRSTCALL
     return 0;
 }

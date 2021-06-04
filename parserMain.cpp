@@ -489,7 +489,7 @@ string printGraph(ProductionNode* root, int counter){
         result = result + to_string(root->id) + " " +to_string(rightNode->id) + "\n";
     }
     
-    cout << " id: " << root->id << " value: " <<  root->data.value << " type: " <<  root->data.type << endl;//<< ") firstpos: " << printNode(root->firstpos) << " lastpos: " << printNode(root->lastpos) << "\n";
+    //cout << " id: " << root->id << " value: " <<  root->data.value << " type: " <<  root->data.type << endl;//<< ") firstpos: " << printNode(root->firstpos) << " lastpos: " << printNode(root->lastpos) << "\n";
 
     return result + (root->left == NULL ? "" : printGraph(root->left, counter++)) + (root->right == NULL ? "" : printGraph(root->right, counter++));
 }
@@ -544,11 +544,13 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
             fillFunctions(root, productionsIds, productionsMap);
         }
         bool first = true;
+        string error ;
         string condition1 ;
         for(const auto &i : root->left->firstpos) {
             condition1 = condition1 + (first ? " " : "||" ) 
             +  "equal(nextToken.type.begin(), nextToken.type.end(), " + i +") ";
             first = false;
+            error = error + i.substr(1, i.size()-2) + " ";
         }
         first = true;
         string condition2 ;
@@ -556,10 +558,11 @@ string generateCode(ProductionNode* root, ProductionNode* father, vector<string>
             condition2 = condition2 + (first ? " " : "||" ) 
             +  "equal(nextToken.type.begin(), nextToken.type.end(), " + i +") ";
             first = false;
+            error = error + i.substr(1, i.size()-2) + " ";
         }
         return "if ("+condition1 + "){ \n" + generateCode(root->left, root, productionsIds, productionsMap)
             + "} \n else if ("+condition2+ "){ \n" + generateCode(root->right, root, productionsIds, productionsMap) 
-            + "} else { error();\n}";
+            + "} else { error(\"" + error + "\");\n}";
     } else if (equal(root->data.type.begin(), root->data.type.end(), "lock")){
         if (root->firstpos.size() == 0){
             fillFunctions(root, productionsIds, productionsMap);
@@ -751,8 +754,8 @@ int main(int argc, char **argv) {
         string firms;
         string firstcall;
         for (int i = 0; i < productionsIds.size(); i++){
-            cout << "///////// tree"+ to_string(i) +" ///////////" << endl;
-            cout << "Next: " << productionsIds[i] << endl ;
+            //cout << "///////// tree"+ to_string(i) +" ///////////" << endl;
+            //cout << "Next: " << productionsIds[i] << endl ;
             Graph* tempGraph = new Graph(productionsMap[productionsIds[i]]);
             string value = printGraph(tempGraph->root, 0);
             string generatedMethod = generateCode(tempGraph->root, NULL, productionsIds, productionsMap);
@@ -766,6 +769,9 @@ int main(int argc, char **argv) {
         methods = firms + "\n" + methods;
         insertBlankTokens(blankTokens);
         insertMethods(methods, firstcall);
+        //Compile parser
+        string command = "c++ generatedParser.cpp -o parser.run";
+        system(command.c_str());
     } catch (std::exception& e) {
         cout << "Error: An error ocurred\n";
         cout << "Check your expression and try again\n";
